@@ -2,11 +2,13 @@ import functions.*;
 import functions.basic.*;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-
+import java.io.ByteArrayOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.StringWriter;
+import java.io.StringReader;
 public class Main {
     public static void main(String[] args) {
         System.out.println("ЛАБОРАТОРНАЯ РАБОТА №7");
-        System.out.println("======================\n");
         
         try {
             // Задание 1: Тестирование итераторов
@@ -25,11 +27,10 @@ public class Main {
     }
     
     /**
-     * ЗАДАНИЕ 1: Тестирование итераторов для табулированных функций
-     */
+    * Функция для демонстрации 1 задани я
+    */
     private static void testIterators() {
-        System.out.println("ЗАДАНИЕ 1 - ТЕСТИРОВАНИЕ ИТЕРАТОРОВ");
-        System.out.println("===================================\n");
+        System.out.println("ЗАДАНИЕ 1 (Итераторы)");
         
         // Тест 1: ArrayTabulatedFunction с итератором
         System.out.println("1. ArrayTabulatedFunction с for-each циклом:");
@@ -120,16 +121,14 @@ public class Main {
                 System.out.println("Оригинал: " + originalPoint.getY() + ", Копия: " + pointFromIterator.getY());
             }
         }
-        
-        System.out.println("\n=== ТЕСТИРОВАНИЕ ИТЕРАТОРОВ ЗАВЕРШЕНО УСПЕШНО ===\n");
+
     }
     
     /**
-     * ЗАДАНИЕ 2: Тестирование фабрик табулированных функций
+     * Функция для демонстрации 2 задания 
     */
     private static void testFactories() {
-        System.out.println("ЗАДАНИЕ 2 - ТЕСТИРОВАНИЕ ФАБРИК");
-        System.out.println("===============================\n");
+        System.out.println("ЗАДАНИЕ 2(Фабрики)");
         
         // Создаем тестовую функцию для табулирования
         Function f = new Cos();
@@ -196,17 +195,15 @@ public class Main {
         for (FunctionPoint point : tf) {
             System.out.println("   " + point);
         }
-        
-        System.out.println("\n=== ТЕСТИРОВАНИЕ ФАБРИК ЗАВЕРШЕНО УСПЕШНО ===");
+
     }
     /**
-     * ЗАДАНИЕ 3: Тестирование рефлексивного создания объектов
-     */
+     * Функция для демонстрации 3 задания 
+    */
     private static void testReflection() {
-        System.out.println("ЗАДАНИЕ 3 - ТЕСТИРОВАНИЕ РЕФЛЕКСИИ");
-        System.out.println("==================================\n");
+        System.out.println("ЗАДАНИЕ 3 (Рефлексии)");
         
-        TabulatedFunction tf;
+        TabulatedFunction tf = null; // Инициализируем null
         
         // Тест 1: Создание ArrayTabulatedFunction через рефлексию
         System.out.println("1. Создание ArrayTabulatedFunction через рефлексию:");
@@ -270,18 +267,17 @@ public class Main {
         // Попытка создать объект класса, не реализующего TabulatedFunction
         System.out.println("a) Передача неправильного класса:");
         try {
-            tf = TabulatedFunctions.createTabulatedFunction(
+            TabulatedFunction tempTf = TabulatedFunctions.createTabulatedFunction(
                 String.class, 0, 10, 3); // String не реализует TabulatedFunction
         } catch (IllegalArgumentException e) {
             System.out.println("Поймано исключение: " + e.getMessage());
         }
 
-        // Исправленный тест - используем несуществующий класс
         System.out.println("b) Передача несуществующего класса:");
         try {
             // Создаем фиктивный класс, который не существует
             Class<?> nonExistentClass = Class.forName("functions.NonExistentClass");
-            tf = TabulatedFunctions.createTabulatedFunction(
+            TabulatedFunction tempTf = TabulatedFunctions.createTabulatedFunction(
                 nonExistentClass, 0, 10, 3);
         } catch (ClassNotFoundException e) {
             System.out.println("Поймано исключение: Класс не найден");
@@ -289,6 +285,47 @@ public class Main {
             System.out.println("Поймано исключение: " + e.getMessage());
         }
         
-        System.out.println("\n=== ТЕСТИРОВАНИЕ РЕФЛЛЕКСИИ ЗАВЕРШЕНО УСПЕШНО ===");
+        // Тест 6: Чтение из потоков с использованием рефлексии
+        System.out.println("\n6. Чтение из потоков с использованием рефлексии:");
+
+        // Проверяем, что tf была инициализирована в предыдущих тестах
+        if (tf == null) {
+            System.out.println("Пропуск теста: tf не инициализирована");
+            return;
+        }
+
+        // Тест 6a: Чтение из байтового потока
+        System.out.println("a) Чтение из байтового потока:");
+        try {
+            ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+            TabulatedFunctions.outputTabulatedFunction(tf, byteOut);
+            ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+            
+            // Читаем с рефлексией
+            TabulatedFunction tfFromByteStream = TabulatedFunctions.inputTabulatedFunction(
+                LinkedListTabulatedFunction.class, byteIn);
+            System.out.println("Тип созданного объекта: " + tfFromByteStream.getClass().getSimpleName());
+            System.out.println("Функция: " + tfFromByteStream);
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+
+        // Тест 6b: Чтение из символьного потока
+        System.out.println("b) Чтение из символьного потока:");
+        try {
+            StringWriter stringWriter = new StringWriter();
+            TabulatedFunctions.writeTabulatedFunction(tf, stringWriter);
+            StringReader stringReader = new StringReader(stringWriter.toString());
+            
+            // Читаем с рефлексией
+            TabulatedFunction tfFromCharStream = TabulatedFunctions.readTabulatedFunction(
+                ArrayTabulatedFunction.class, stringReader);
+            System.out.println("Тип созданного объекта: " + tfFromCharStream.getClass().getSimpleName());
+            System.out.println("Функция: " + tfFromCharStream);
+        } catch (Exception e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+
     }
+    
 }

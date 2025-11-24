@@ -89,37 +89,13 @@ public final class TabulatedFunctions {
         }
     }
 
-    // // Метод ввода из байтового потока
-    // public static TabulatedFunction inputTabulatedFunction(InputStream in) {
-    //     try (DataInputStream dis = new DataInputStream(in)) {
-    //         int pointsCount = dis.readInt();
-    //         FunctionPoint[] points = new FunctionPoint[pointsCount];
-            
-    //         for (int i = 0; i < pointsCount; i++) {
-    //             double x = dis.readDouble();
-    //             double y = dis.readDouble();
-    //             points[i] = new FunctionPoint(x, y);
-    //         }
-            
-    //         return new ArrayTabulatedFunction(points);
-    //     } catch (IOException e) {
-    //         throw new RuntimeException("Ошибка при чтении функции из потока", e);
-    //     }
-    // }
+    public static TabulatedFunction inputTabulatedFunction(Class<?> functionClass, InputStream in) {
 
-    // Метод записи в символьный поток
-    public static void writeTabulatedFunction(TabulatedFunction function, Writer out) {
-        try (PrintWriter writer = new PrintWriter(out)) {
-            writer.print(function.getPointsCount() + " ");
-            for (int i = 0; i < function.getPointsCount(); i++) {
-                FunctionPoint point = function.getPoint(i);
-                writer.print(point.getX() + " " + point.getY() + " ");
-            }
+        if (!TabulatedFunction.class.isAssignableFrom(functionClass)) {
+            throw new IllegalArgumentException(
+                "Класс " + functionClass.getName() + " не реализует интерфейс TabulatedFunction");
         }
-        // PrintWriter не бросает IOException в методах print/println
-    }
-
-    public static TabulatedFunction inputTabulatedFunction(InputStream in) {
+        
         try (DataInputStream dis = new DataInputStream(in)) {
             int pointsCount = dis.readInt();
             FunctionPoint[] points = new FunctionPoint[pointsCount];
@@ -130,15 +106,21 @@ public final class TabulatedFunctions {
                 points[i] = new FunctionPoint(x, y);
             }
             
-            // Используем фабрику вместо прямого создания
-            return createTabulatedFunction(points);
+            // Используем рефлексивное создание
+            return createTabulatedFunction(functionClass, points);
+            
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при чтении функции из потока", e);
         }
     }
-
-    // Метод readTabulatedFunction
-    public static TabulatedFunction readTabulatedFunction(Reader in) {
+    public static TabulatedFunction readTabulatedFunction(
+        Class<?> functionClass, Reader in) {
+    
+        if (!TabulatedFunction.class.isAssignableFrom(functionClass)) {
+            throw new IllegalArgumentException(
+                "Класс " + functionClass.getName() + " не реализует интерфейс TabulatedFunction");
+        }
+        
         try {
             StreamTokenizer tokenizer = new StreamTokenizer(in);
             tokenizer.parseNumbers();
@@ -164,12 +146,26 @@ public final class TabulatedFunctions {
                 points[i] = new FunctionPoint(x, y);
             }
             
-            // Используем фабрику вместо прямого создания
-            return createTabulatedFunction(points);
+            // Используем рефлексивное создание
+            return createTabulatedFunction(functionClass, points);
+            
         } catch (IOException e) {
             throw new RuntimeException("Ошибка при чтении функции из потока", e);
         }
     }
+    // Метод записи в символьный поток
+    public static void writeTabulatedFunction(TabulatedFunction function, Writer out) {
+        try (PrintWriter writer = new PrintWriter(out)) {
+            writer.print(function.getPointsCount() + " ");
+            for (int i = 0; i < function.getPointsCount(); i++) {
+                FunctionPoint point = function.getPoint(i);
+                writer.print(point.getX() + " " + point.getY() + " ");
+            }
+        }
+        // PrintWriter не бросает IOException в методах print/println
+    }
+
+    
     /**
      * Создает табулированную функцию указанного класса через рефлексию
      * @param functionClass класс, реализующий TabulatedFunction
